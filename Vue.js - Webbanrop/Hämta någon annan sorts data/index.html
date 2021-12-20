@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+	</head>
+	<body>
+		<div id="app">
+			<select name="countries" @change="displayData()" v-model="selectedCountry">
+				<option value="">--Please choose an option--</option>
+				<option v-for="country in countries" v-bind:value="country.name">{{ country.name.common }}</option>
+			</select>
+			<div v-if="countryInformation != null">
+				<h1>{{ countryInformation.name.common }}</h1>
+				<img v-if="countryInformation.coatOfArms.png" :src="countryInformation.coatOfArms.png" width="300" alt="Coat of Arms" />
+				<table>
+					<tr>
+						<th v-if="countryInformation.population">Population</th>
+						<th v-if="countryInformation.capital">Capital(s)</th>
+						<th v-if="countryInformation.region">Region</th>
+					</tr>
+					<tr>
+						<td v-if="countryInformation.population">{{countryInformation.population}}</td>
+						<td v-if="countryInformation.capital">{{countryInformation.capital.toString()}}</td>
+						<td v-if="countryInformation.region">{{countryInformation.region}}</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+
+		<!-- Import of Vue.JS -->
+		<script src="https://unpkg.com/vue@next"></script>
+		<script>
+			Vue.createApp({
+				data() {
+					return { countries: null, selectedCountry: '', countryInformation: null };
+				},
+				mounted() {
+					fetch('https://restcountries.com/v3.1/all')
+						.then((response) => response.json())
+						.then((data) => {
+							this.countries = data;
+						});
+				},
+				methods: {
+					displayData() {
+						let country = this.selectedCountry;
+						if (country) {
+							fetch(`https://restcountries.com/v3.1/name/${this.selectedCountry.common}?fullText=true`)
+								.then((response) => response.json())
+								.then((data) => {
+									console.log(data[0]);
+									this.countryInformation = data[0];
+								});
+						} else {
+							this.countryInformation = null;
+						}
+					}
+				}
+			}).mount('#app');
+		</script>
+	</body>
+</html>
