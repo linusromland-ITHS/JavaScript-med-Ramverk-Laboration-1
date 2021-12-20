@@ -14,21 +14,19 @@ Vue.createApp({
 					this.cities = data;
 				});
 		},
-		addCity() {
-			fetch('https://avancera.app/cities/', {
+		async addCity() {
+			const city = {
+				name: this.name,
+				population: parseInt(this.population)
+			};
+			const req = await fetch('https://avancera.app/cities/', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({
-					name: this.name,
-					population: this.population
-				})
-			})
-				.then((response) => response.json())
-				.then((data) => {
-					this.fetchCities();
-				});
+				body: JSON.stringify(city)
+			});
+			this.cities = await req.json();
 		}
 	},
 	mounted() {
