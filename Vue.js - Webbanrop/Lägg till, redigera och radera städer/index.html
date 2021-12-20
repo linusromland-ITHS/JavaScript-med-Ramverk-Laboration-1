@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+
+		<style>
+			ul {
+				list-style-type: none;
+				margin-left: 0;
+				padding-left: 0;
+			}
+			li {
+				margin-right: 1rem;
+				padding: 1rem;
+				background-color: #7e7e7e;
+				display: inline-block;
+				border-radius: 39px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app">
+			<div v-if="!editing">
+				<h1>Cities</h1>
+
+				<div>
+					<label>
+						Name
+						<input v-model="name" placeholder="Name" />
+					</label>
+					<label>
+						Population
+						<input v-model="population" placeholder="Population" type="number" />
+					</label>
+					<input @click="addCity()" type="button" value="Add City" />
+				</div>
+				<ul>
+					<li v-for="city in cities">
+						<p>{{ city.name }}</p>
+						<p>{{Intl.NumberFormat().format(city.population) }} inhabitant(s)</p>
+						<button @click="editCity(city.name, city.population, city.id)">Edit city</button>
+						<button @click="deleteCity(city.id)">Delete city</button>
+					</li>
+				</ul>
+			</div>
+			<div v-else>
+				<h1>Edit City "{{nameEdit}}"</h1>
+				<label>
+					Name
+					<input v-model="nameEdit" placeholder="Name" />
+				</label>
+				<label>
+					Population
+					<input v-model="populationEdit" placeholder="Population" type="number" />
+				</label>
+				<input @click="updateCity()" type="button" value="Update City" />
+				<input @click="cancelEdit()" type="button" value="Cancel" />
+			</div>
+		</div>
+
+		<!-- Import of Vue.JS -->
+		<script src="https://unpkg.com/vue@next"></script>
+		<script>
+			Vue.createApp({
+				data() {
+					return {
+						cities: [],
+						editing: false,
+						nameEdit: '',
+						populationEdit: 0,
+						editID: 0
+					};
+				},
+				methods: {
+					async fetchCities() {
+						const response = await fetch('https://avancera.app/cities/');
+						const cities = await response.json();
+						this.cities = cities;
+					},
+					async deleteCity(id) {
+						const response = await fetch('https://avancera.app/cities/' + id, {
+							method: 'DELETE'
+						});
+						this.fetchCities();
+					},
+					async addCity() {
+						const city = {
+							name: this.name,
+							population: parseInt(this.population)
+						};
+						const req = await fetch('https://avancera.app/cities/', {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json'
+							},
+							body: JSON.stringify(city)
+						});
+                        this.name = '';
+                        this.population = '';
+						this.cities = await req.json();
+					},
+					editCity(name, pop, id) {
+						this.editing = true;
+						this.nameEdit = name;
+						this.populationEdit = pop;
+						this.editID = id;
+					},
+					cancelEdit() {
+						this.editing = false;
+						this.nameEdit = '';
+						this.populationEdit = 0;
+						this.editID = 0;
+					},
+					async updateCity() {
+						const city = {
+							id: this.editID,
+							name: this.nameEdit,
+							population: parseInt(this.populationEdit)
+						};
+						const req = await fetch('https://avancera.app/cities/' + this.editID, {
+							method: 'PUT',
+							headers: {
+								'Content-Type': 'application/json'
+							},
+							body: JSON.stringify(city)
+						});
+						this.fetchCities();
+						this.cancelEdit();
+					}
+				},
+				mounted() {
+					this.fetchCities();
+				}
+			}).mount('#app');
+		</script>
+	</body>
+</html>
